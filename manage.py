@@ -60,7 +60,7 @@ def login():
 
     
 @app.route("/signup", methods=["POST"])
-def user():
+def signup():
         #Regular expression that checks a valid email
         ereg = '^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$'
         #Regular expression that checks a valid password
@@ -86,9 +86,33 @@ def user():
 
         db.session.commit()
 
+
         return jsonify({"success": True}), 201 
 
+@app.route("/user/<int:id>", methods=["DELETE", "GET", "PUT"])
+@app.route("/users", methods=["GET"])
+def user(id=None):
+    if request.method == "GET":
+        if id is not None:
+            user = User.query.get(id)
+            return jsonify(user.serialize()), 200
+        else:
+            user = User.query.all()
+            users = list(map(lambda user: user.serialize(), user))
+            return jsonify(users), 200
 
+    if request.method == "DELETE": 
+        user = User.query.get(id)
+        db.session.delete(user)
+        db.session.commit()
+        return "User has been deleted", 200
+
+    if request.method == "PUT":
+        if id is not None: 
+            user = User.query.get(id)
+            user.firstname = request.json.get("firstname")
+            db.session.commit()
+            return jsonify(user.serialize()), 201
 
 
 if __name__ == "__main__":
